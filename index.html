@@ -12,20 +12,19 @@
   </head>
   <body>
     <header class="header">
-      <div class="container">
-        <div class="heading">POMODORO</div>
-        <div class="project-links">
-          <span class="project-link">
-            <i class="fa fa-question-circle"></i>
+      <div class="header_container">
+        <div class="header_title">POMODORO</div>
+        <div class="header_links">
+          <span class="header_link" id="btn-reset">
+            <i class="fa fa-repeat"></i>
+            Reset
           </span>
-          <a class="project-link" href="https://github.com/ahmedtadde/fcc-pomodoro" target="_blank">
+          <span class="header_link" id="btn-about">
+            <i class="fa fa-question-circle"></i>
+            About
+          </span>
+          <a class="header_link" href="https://github.com/ahmedtadde/fcc-pomodoro" target="_blank">
             <i class="fa fa-github"></i>
-          </a>
-          <a class="project-link" href="https://codepen.io/ahmedtadde/pen/Wzrwqz" target="_blank">
-            <i class="fa fa-codepen"></i>
-          </a>
-          <a class="project-link" href="https://twitter.com/iDramedy" target="_blank">
-            <i class="fa fa-twitter"></i>
           </a>
         </div>
       </div>
@@ -33,10 +32,10 @@
 
     <main class="wrapper">
 
-      <section class="modal">
+      <section class="modal" id="section-modal">
         <div class="modal_container">
           <div class="modal_header">
-            <span class="modal_exit"><i class="fa fa-times fa-3x"></i></span>
+            <span class="modal_exit" id="btn-modal"><i class="fa fa-times fa-3x"></i></span>
           </div>
           <div class="modal_content">
             <h2 class="modal_title">Pomodoro Clock</h2>
@@ -50,7 +49,24 @@
 
 
       <section class="pomodoro">
-
+        <div class="flex-row flex-primary">
+          <span class="time time-primary" id="minutes">5</span>
+          <span>&#8282;</span>
+          <span class="time time-primary" id="seconds">00</span>
+        </div>
+        <div class="flex-row flex-secondary">
+          <div class="btn btn-primary">
+            <span class="btn-adjust" data-command="reduce_work_minutes">&#8722;</span>
+            <span class="time time-secondary" id="work">5</span>
+            <span class="btn-adjust" data-command="add_work_minutes">&#43;</span>
+          </div>
+          <div class="btn btn-secondary" data-state="inactive" data-reset="false" id="btn-activator">Start</div>
+          <div class="btn btn-primary">
+            <span class="btn-adjust" data-command="reduce_break_minutes">&#8722;</span>
+            <span class="time time-secondary" id="break">5</span>
+            <span class="btn-adjust" data-command="add_break_minutes">&#43;</span>
+          </div>
+        </div>
       </section>
 
     </main>
