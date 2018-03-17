@@ -14,47 +14,55 @@
 
   const settingBtns = Array.from(document.getElementsByClassName('btn-adjust'));
 
+  const remainingTime = () => {
+    let m = parseInt(minutes.textContent);
+    let s = parseInt(seconds.textContent);
+    return m * 60 + s;
+  }
+
   const countdown = (time) => {
     function tick() {
       time--;
-      if( time > 0 && !pause) {
+      if( time > 0 && !isPaused) {
         let m = parseInt(time/60);
         let s = (time % 60);
-
-        // m = m > 10 ? m : '0' + m.toString();
         s = s >= 10 ? s : '0' + s.toString();
-
         minutes.textContent = m;
         seconds.textContent = s;
         setTimeout(tick, 1000);
       }else if(time === 0){
-        if(!onbreak){
-          onbreak = true;
+        alarm.play()
+        if(!isOnBreak){
           minutes.textContent = breakSession.textContent;
           seconds.textContent = '00';
           mainBtn.textContent = "Start Break Session";
+          mainBtn.setAttribute('data-state', 'work-done');
         }else{
-          minutes.textContent = '00';
+          minutes.textContent = '0';
           seconds.textContent = '00';
-          mainBtn.textContent = "Reset";
+          mainBtn.textContent = "Reset For New Session";
+          mainBtn.setAttribute('data-state', 'break-done');
         }
       }
     }
     setTimeout(tick, 1000);
   }
 
-  let pause = true;
-  let onbreak = false;
+  const alarm = new Audio("assets/alarm.wav");
+  alarm.loop = true;
+
+  let isPaused = false;
+  let isOnBreak = false;
 
   reset.onclick = () => {
-    pause = true;
-    onbreak = false;
-    minutes.textContent = '5';
+    isPaused = false;
+    isOnBreak = false;
+    alarm.pause();
+    minutes.textContent = '25';
     seconds.textContent = '00';
-    workSession.textContent = '5';
+    workSession.textContent = '25';
     breakSession.textContent = '5';
-    mainBtn.setAttribute('data-state', 'paused');
-    mainBtn.setAttribute('data-reset', 'false');
+    mainBtn.setAttribute('data-state', 'none');
     mainBtn.textContent = 'START';
   }
 
@@ -75,37 +83,49 @@
 
   settingBtns.forEach((btn) => {
     btn.onclick = () => {
-      let command, time;
+      let command, state, currentTime;
       command = btn.getAttribute('data-command');
+      state = mainBtn.getAttribute('data-state');
 
-      if(command && pause){
+      if(command && (isPaused || state === 'none')){
         switch (command) {
           case 'add_work_minutes':
             currentTime = parseInt(workSession.textContent);
-            workSession.textContent  = currentTime+1;
-            minutes.textContent  = currentTime+1;
+            workSession.textContent  = currentTime+5;
+            minutes.textContent  = currentTime+5;
             seconds.textContent  = '00';
+            mainBtn.setAttribute('data-state', 'none');
+            mainBtn.textContent = 'START';
             break;
 
           case 'reduce_work_minutes':
             currentTime = parseInt(workSession.textContent);
-            if(currentTime > 2){
-              workSession.textContent  = currentTime-1;
-              minutes.textContent  = currentTime-1;
+            if(currentTime > 10){
+              workSession.textContent  = currentTime-5;
+              minutes.textContent  = currentTime-5;
             }
-
+            mainBtn.setAttribute('data-state', 'none');
+            mainBtn.textContent = 'START';
             break;
 
           case 'add_break_minutes':
             currentTime = parseInt(breakSession.textContent);
-            breakSession.textContent  = currentTime+1;
+            breakSession.textContent  = currentTime+5;
+            minutes.textContent = workSession.textContent;
+            seconds.textContent  = '00';
+            mainBtn.setAttribute('data-state', 'none');
+            mainBtn.textContent = 'START';
             break;
 
           case 'reduce_break_minutes':
             currentTime = parseInt(breakSession.textContent);
-            if(currentTime > 1){
-              breakSession.textContent  = currentTime-1;
+            if(currentTime > 5){
+              breakSession.textContent  = currentTime-5;
             }
+            minutes.textContent = workSession.textContent;
+            seconds.textContent  = '00';
+            mainBtn.setAttribute('data-state', 'none');
+            mainBtn.textContent = 'START';
             break;
 
 
@@ -117,38 +137,62 @@
   });
 
   mainBtn.onclick = () => {
-    if(mainBtn.getAttribute('data-reset') === 'true'){
-      reset.click();
-      mainBtn.setAttribute('data-reset', 'false');
-    }else{
-      let state = mainBtn.getAttribute('data-state');
-      if(state === 'inactive'){
-        if(!onbreak){
-          mainBtn.textContent = 'Work Session Ongoing';
-        }else{
-          mainBtn.textContent = 'Break Session Ongoing';
-        }
-        pause = false;
-        let m = parseInt(minutes.textContent);
-        let s = parseInt(seconds.textContent);
-        let time = m * 60 + s;
-        mainBtn.setAttribute('data-state', 'ongoing');
-        countdown(time);
-      }else if(state === 'ongoing'){
-        if(!onbreak){
-          mainBtn.textContent = 'Work Session Paused';
-        }else{
-          mainBtn.textContent = 'Break Session Paused';
-        }
-        pause = true;
-        mainBtn.setAttribute('data-state', 'inactive');
-      }
+    let state = mainBtn.getAttribute('data-state');
+    // console.log(state);
+    switch (state) {
+      case 'none':
+        isPaused = false;
+        mainBtn.textContent = 'Work Session Ongoing';
+        mainBtn.setAttribute('data-state', 'work-ongoing');
+        countdown(remainingTime());
+        break;
+
+      case 'work-ongoing':
+        isPaused = true;
+        mainBtn.textContent = 'Work Session Paused';
+        mainBtn.setAttribute('data-state', 'work-paused');
+        break;
+
+      case 'work-paused':
+        isPaused = false;
+        mainBtn.textContent = 'Work Session Ongoing';
+        mainBtn.setAttribute('data-state', 'work-ongoing');
+        countdown(remainingTime());
+        break;
+
+      case 'work-done':
+        alarm.pause();
+        isPaused = false;
+        isOnBreak = true;
+        mainBtn.textContent = 'Break Session Ongoing';
+        mainBtn.setAttribute('data-state', 'break-ongoing');
+        countdown(remainingTime());
+        break;
+
+      case 'break-ongoing':
+        isPaused = true;
+        mainBtn.textContent = 'Break Session Paused';
+        mainBtn.setAttribute('data-state', 'break-paused');
+        break;
+
+      case 'break-paused':
+        isPaused = false;
+        mainBtn.textContent = 'Break Session Ongoing';
+        mainBtn.setAttribute('data-state', 'break-ongoing');
+        countdown(remainingTime());
+        break;
+
+      case 'break-done':
+        reset.click();
+        break;
+      default:
+
     }
   }
 
 
-  // window.onload = () => {
-  //   aboutBtn.click();
-  // }
+  window.onload = () => {
+    about.click();
+  }
 
 })();
