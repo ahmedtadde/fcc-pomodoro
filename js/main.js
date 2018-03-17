@@ -55,7 +55,7 @@
   let isOnBreak = false;
 
   reset.onclick = () => {
-    isPaused = false;
+    isPaused = true;
     isOnBreak = false;
     alarm.pause();
     minutes.textContent = '25';
